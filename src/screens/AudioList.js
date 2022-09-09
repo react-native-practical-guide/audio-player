@@ -13,7 +13,7 @@ import { AudioContext } from "../context/AudioProvider";
 import { constStyles, default_styles } from "../styles";
 import { AudioListItem, Screen, OptionModal } from "../components";
 import { Audio } from "expo-av";
-import { play, pause, resume } from "../misc/audioController";
+import { play, pause, resume, playnext } from "../misc/audioController";
 class AudioList extends Component {
   static contextType = AudioContext;
 
@@ -57,7 +57,11 @@ class AudioList extends Component {
     }
 
     // pause audio
-    if (soundObj.isLoaded && soundObj.isPlaying) {
+    if (
+      soundObj.isLoaded &&
+      soundObj.isPlaying &&
+      currentAudio.id === audio.id
+    ) {
       const status = await pause(playBackObj);
       return updateState(this.state, { soundObj: status });
     }
@@ -70,6 +74,17 @@ class AudioList extends Component {
     ) {
       const status = await resume(playBackObj);
       return updateState(this.state, { soundObj: status });
+    }
+
+    // select another audio
+    if (soundObj.isLoaded && currentAudio.id != audio.id) {
+      console.log("play next");
+      const status = await playnext(playBackObj, audio.uri);
+      return updateState(this.context, {
+        currentAudio: audio,
+        playBackObj,
+        soundObj: status,
+      });
     }
   };
 

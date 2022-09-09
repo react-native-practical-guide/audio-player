@@ -26,5 +26,14 @@ const resume = async (playBackObj) => {
 };
 
 // select another audio
+const playnext = async (playBackObj, uri) => {
+  try {
+    await playBackObj.stopAsync();
+    await playBackObj.unloadAsync();
+    return await play(playBackObj, uri);
+  } catch (error) {
+    console.log("Error in playnext func", error.message);
+  }
+};
 
-export { play, pause, resume };
+export { play, pause, resume, playnext };
