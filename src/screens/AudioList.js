@@ -1,17 +1,18 @@
+import React, { Component } from "react";
 import {
   ScrollView,
   ScrollViewComponent,
   StyleSheet,
   Text,
   View,
+  Dimensions,
 } from "react-native";
-import default_styles from "../styles/default_styles";
-import React, { Component } from "react";
-import { AudioContext } from "../context/AudioProvider";
 import { RecyclerListView, LayoutProvider } from "recyclerlistview";
-import { Dimensions } from "react-native";
-import { constStyles } from "../styles";
+
+import { AudioContext } from "../context/AudioProvider";
+import { constStyles, default_styles } from "../styles";
 import { AudioListItem, Screen, OptionModal } from "../components";
+import { Audio } from "expo-av";
 class AudioList extends Component {
   static contextType = AudioContext;
 
@@ -19,7 +20,11 @@ class AudioList extends Component {
     super(props);
     this.state = {
       optionModalVisible: false,
+      playBackObj: null,
+      soundObj: null,
+      currentAudio: {},
     };
+
     this.currentItem = {};
   }
 
@@ -28,7 +33,7 @@ class AudioList extends Component {
     (type, dim) => {
       switch (type) {
         case "audio":
-          dim.width = Dimensions.get("window").width;
+          dim.width = constStyles.width;
           dim.height = 70;
           break;
         default:
@@ -39,6 +44,41 @@ class AudioList extends Component {
     }
   );
 
+  handleAudioPress = async (audio) => {
+    const { currentAudio, soundObj, playBackObj } = this.state;
+    // playing audio for first time
+    if (!soundObj) {
+      const playBackObj = new Audio.Sound();
+      const status = await playBackObj.loadAsync(
+        { uri: audio.uri },
+        { shouldPlay: true }
+      );
+
+      return this.setState({
+        ...this.state,
+        currentAudio: audio,
+        playBackObj,
+        soundObj: status,
+      });
+    }
+
+    // pause audio
+    if (soundObj.isLoaded && soundObj.isPlaying) {
+      const status = await playBackObj.setStatusAsync({ shouldPlay: false });
+      return this.setState({ ...this.state, soundObj: status });
+    }
+
+    // resume audio
+    if (
+      soundObj.isLoaded &&
+      !soundObj.isPlaying &&
+      currentAudio.id === audio.id
+    ) {
+      const status = await playBackObj.playAsync();
+      return this.setState({ ...this.state, soundObj: status });
+    }
+  };
+
   rowRenderer = (type, item) => {
     return (
       <AudioListItem
@@ -48,6 +88,7 @@ class AudioList extends Component {
           this.currentItem = item;
           this.setState({ ...this.state, optionModalVisible: true });
         }}
+        onAudioPress={() => this.handleAudioPress(item)}
       />
     );
   };
