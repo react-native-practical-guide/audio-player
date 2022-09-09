@@ -1,5 +1,5 @@
-import { StyleSheet, Text, View, TouchableWithoutFeedback } from "react-native";
 import React from "react";
+import { StyleSheet, Text, View, TouchableWithoutFeedback } from "react-native";
 import { Entypo } from "@expo/vector-icons";
 import { colors } from "../misc";
 import { constStyles } from "../styles";
@@ -29,15 +29,41 @@ const convertTime = (minutes) => {
   }
 };
 
-const AudioListItem = ({ title, duration, onOptionPress, onAudioPress }) => {
+const renderPlayPauseIcon = (isPlaying) => {
+  if (!isPlaying)
+    return <Entypo name="controller-play" size={24} color="black" />;
+  else
+    return (
+      <Entypo name="controller-paus" size={24} color={colors.ACTIVE_FONT} />
+    );
+};
+
+const AudioListItem = ({
+  title,
+  duration,
+  onOptionPress,
+  onAudioPress,
+  isPlaying,
+  activeListItem,
+}) => {
   return (
     <>
       <View style={styles.container}>
         <TouchableWithoutFeedback onPress={onAudioPress}>
           <View style={styles.leftContainer}>
-            <View style={styles.thumbnail}>
+            <View
+              style={[
+                styles.thumbnail,
+                {
+                  backgroundColor: activeListItem
+                    ? colors.ACTIVE_BG
+                    : colors.FONT_LIGHT,
+                },
+              ]}>
               <Text style={styles.thumbnailText}>
-                {getThumbnailText(title)}
+                {activeListItem
+                  ? renderPlayPauseIcon(isPlaying)
+                  : getThumbnailText(title)}
               </Text>
             </View>
             <View style={styles.titleContainer}>
