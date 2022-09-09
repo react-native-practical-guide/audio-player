@@ -13,6 +13,7 @@ import { AudioContext } from "../context/AudioProvider";
 import { constStyles, default_styles } from "../styles";
 import { AudioListItem, Screen, OptionModal } from "../components";
 import { Audio } from "expo-av";
+import { play, pause, resume } from "../misc/audioController";
 class AudioList extends Component {
   static contextType = AudioContext;
 
@@ -20,9 +21,6 @@ class AudioList extends Component {
     super(props);
     this.state = {
       optionModalVisible: false,
-      playBackObj: null,
-      soundObj: null,
-      currentAudio: {},
     };
 
     this.currentItem = {};
@@ -45,17 +43,13 @@ class AudioList extends Component {
   );
 
   handleAudioPress = async (audio) => {
-    const { currentAudio, soundObj, playBackObj } = this.state;
+    const { soundObj, playBackObj, currentAudio, updateState } = this.context;
     // playing audio for first time
     if (!soundObj) {
       const playBackObj = new Audio.Sound();
-      const status = await playBackObj.loadAsync(
-        { uri: audio.uri },
-        { shouldPlay: true }
-      );
+      const status = await play(playBackObj, audio.uri);
 
-      return this.setState({
-        ...this.state,
+      return updateState(this.context, {
         currentAudio: audio,
         playBackObj,
         soundObj: status,
@@ -64,8 +58,8 @@ class AudioList extends Component {
 
     // pause audio
     if (soundObj.isLoaded && soundObj.isPlaying) {
-      const status = await playBackObj.setStatusAsync({ shouldPlay: false });
-      return this.setState({ ...this.state, soundObj: status });
+      const status = await pause(playBackObj);
+      return updateState(this.state, { soundObj: status });
     }
 
     // resume audio
@@ -74,8 +68,8 @@ class AudioList extends Component {
       !soundObj.isPlaying &&
       currentAudio.id === audio.id
     ) {
-      const status = await playBackObj.playAsync();
-      return this.setState({ ...this.state, soundObj: status });
+      const status = await resume(playBackObj);
+      return updateState(this.state, { soundObj: status });
     }
   };
 
