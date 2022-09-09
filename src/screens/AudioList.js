@@ -10,6 +10,7 @@ import React, { Component } from "react";
 import { AudioContext } from "../context/AudioProvider";
 import { RecyclerListView, LayoutProvider } from "recyclerlistview";
 import { Dimensions } from "react-native";
+import { constStyles } from "../styles";
 class AudioList extends Component {
   static contextType = AudioContext;
 
@@ -61,6 +62,9 @@ const styles = StyleSheet.create({
     padding: 10,
     borderBottomColor: "red",
     borderBottomWidth: 2,
+  },
+  seperator: {
+    width: constStyles.width - 80,
   },
 });
 
