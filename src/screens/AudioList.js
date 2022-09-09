@@ -11,9 +11,17 @@ import { AudioContext } from "../context/AudioProvider";
 import { RecyclerListView, LayoutProvider } from "recyclerlistview";
 import { Dimensions } from "react-native";
 import { constStyles } from "../styles";
-import { AudioListItem, Screen } from "../components";
+import { AudioListItem, Screen, OptionModal } from "../components";
 class AudioList extends Component {
   static contextType = AudioContext;
+
+  constructor(props) {
+    super(props);
+    this.state = {
+      optionModalVisible: false,
+    };
+    this.currentItem = {};
+  }
 
   layoutProvider = new LayoutProvider(
     (i) => "audio",
@@ -36,7 +44,10 @@ class AudioList extends Component {
       <AudioListItem
         title={item.filename}
         duration={item.duration}
-        onOptionPress={() => console.log("press")}
+        onOptionPress={() => {
+          this.currentItem = item;
+          this.setState({ ...this.state, optionModalVisible: true });
+        }}
       />
     );
   };
@@ -51,6 +62,26 @@ class AudioList extends Component {
                 dataProvider={dataProvider}
                 layoutProvider={this.layoutProvider}
                 rowRenderer={this.rowRenderer}
+              />
+              <OptionModal
+                onPlayPress={() => console.log("Playig audio")}
+                // onPlayListPress={() => {
+                //   this.context.updateState(this.context, {
+                //     addToPlayList: this.currentItem,
+                //   });
+                //   this.props.navigation.navigate("PlayList");
+                // }}
+                // options={[
+                //   {
+                //     title: "Add to playlist",
+                //     onPress: this.navigateToPlaylist,
+                //   },
+                // ]}
+                currentItem={this.currentItem}
+                onClose={() =>
+                  this.setState({ ...this.state, optionModalVisible: false })
+                }
+                visible={this.state.optionModalVisible}
               />
             </Screen>
           );

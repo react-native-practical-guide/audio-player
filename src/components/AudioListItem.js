@@ -49,6 +49,7 @@ const AudioListItem = ({ title, duration, onOptionPress }) => {
             name="dots-three-vertical"
             size={20}
             color={colors.FONT_MEDIUM}
+            style={{ padding: 10 }}
             onPress={onOptionPress}
           />
         </View>
