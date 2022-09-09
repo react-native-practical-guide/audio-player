@@ -1,19 +1,17 @@
 import { Alert } from "react-native";
 import React, { Component, createContext } from "react";
 import * as MediaLibrary from "expo-media-library";
+import { DataProvider } from "recyclerlistview";
 
-// const audioFiles: MediaLibrary.Asset[] = [];
-// export const AudioContext = createContext(audioFiles);
 export const AudioContext = createContext();
 
-type Props = { children: any };
-type State = { audioFiles: MediaLibrary.Asset[] };
-// export default class AudioProvider extends Component<Props, State> {
 export default class AudioProvider extends Component {
   constructor(props: any) {
     super(props);
     this.state = {
       audioFiles: [],
+      dataProvider: new DataProvider((r1, r2) => r1 !== r2),
+      permissionError: false,
     };
   }
 
@@ -25,6 +23,7 @@ export default class AudioProvider extends Component {
   };
 
   getAudioFiles = async () => {
+    /* The tutorial does not use the getAlbumAsync! */
     const getMedia = await MediaLibrary.getAlbumAsync("Lessons");
     let media = await MediaLibrary.getAssetsAsync({ mediaType: "audio" });
     media = await MediaLibrary.getAssetsAsync({
@@ -34,7 +33,14 @@ export default class AudioProvider extends Component {
       first: media.totalCount,
     });
 
-    this.setState({ ...this.state, audioFiles: media.assets });
+    this.setState({
+      ...this.state,
+      dataProvider: this.state.dataProvider.cloneWithRows([
+        ...this.state.audioFiles,
+        ...media.assets,
+      ]),
+      audioFiles: [...this.state.audioFiles, ...media.assets],
+    });
     console.log(media.assets.length);
   };
 
@@ -62,6 +68,7 @@ export default class AudioProvider extends Component {
 
       if (status === "denied" && !canAskAgain) {
         // display error
+        this.setState({ ...this.state, permissionError: true });
       }
     }
   };
@@ -71,8 +78,28 @@ export default class AudioProvider extends Component {
   }
 
   render() {
+    const { audioFiles, dataProvider, permissionError } = this.state;
+
+    if (permissionError)
+      return (
+        <View
+          style={{
+            flex: 1,
+            justifyContent: "center",
+            alignItems: "center",
+          }}>
+          <Text style={{ fontSize: 25, textAlign: "center", color: "red" }}>
+            It looks like you haven't accept the permission.
+          </Text>
+        </View>
+      );
+
     return (
-      <AudioContext.Provider value={{ audioFiles: this.state.audioFiles }}>
+      <AudioContext.Provider
+        value={{
+          audioFiles,
+          dataProvider,
+        }}>
         {this.props.children}
       </AudioContext.Provider>
     );
