@@ -17,7 +17,10 @@ export default class AudioProvider extends Component {
       currentAudio: {},
       isPlaying: false,
       currentAudioIndex: null,
+      playbackPosition: null,
+      playbackDuration: null,
     };
+    this.totalAudioCount = 9;
   }
 
   permissionAllert = () => {
@@ -37,6 +40,7 @@ export default class AudioProvider extends Component {
       album: getMedia,
       first: media.totalCount,
     });
+    this.totalAudioCount = media.totalCount;
 
     this.setState({
       ...this.state,
@@ -46,7 +50,7 @@ export default class AudioProvider extends Component {
       ]),
       audioFiles: [...this.state.audioFiles, ...media.assets],
     });
-    console.log(media.assets.length);
+    // console.log(media.assets.length);
   };
 
   getPermission = async () => {
@@ -96,6 +100,8 @@ export default class AudioProvider extends Component {
       currentAudio,
       isPlaying,
       currentAudioIndex,
+      playbackPosition,
+      playbackDuration,
     } = this.state;
 
     if (permissionError)
@@ -123,6 +129,9 @@ export default class AudioProvider extends Component {
           updateState: this.updateState,
           isPlaying,
           currentAudioIndex,
+          totalAudioCount: this.totalAudioCount,
+          playbackPosition,
+          playbackDuration,
         }}>
         {this.props.children}
       </AudioContext.Provider>

@@ -15,7 +15,7 @@ const PlayerButton = ({
       case "PLAY":
         return "pausecircle";
       case "PAUSE":
-        return "playcircle";
+        return "playcircleo";
       case "NEXT":
         return "forward";
       case "PREV":

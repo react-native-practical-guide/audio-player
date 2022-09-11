@@ -1,30 +1,42 @@
-import React from "react";
+import React, { useContext } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
+import { AudioContext } from "../context/AudioProvider";
 import { PlayerButton, Screen } from "../components";
 import { colors } from "../misc";
 import Slider from "@react-native-community/slider";
 import { constStyles } from "../styles";
 
 const Player = () => {
+  const context = useContext(AudioContext);
+  const { playbackPosition, playbackDuration } = context;
+
+  const calculateSearchBar = () => {
+    if (playbackPosition !== null && playbackDuration !== null)
+      return playbackPosition / playbackDuration;
+    else return 0;
+  };
   return (
     <Screen>
       <View style={styles.container}>
-        <Text style={styles.audioCount}>1 / 99</Text>
+        <Text style={styles.audioCount}>
+          {` ${context.currentAudioIndex + 1} / ${context.totalAudioCount}`}
+        </Text>
         <View style={styles.midBannerContainer}>
           <MaterialCommunityIcons
             name="music-circle"
             size={300}
-            color={colors.ACTIVE_BG}
+            color={context.isPlaying ? colors.ACTIVE_BG : colors.FONT_MEDIUM}
           />
         </View>
         <View style={styles.audioPlayerContainer}>
           <Text numberOfLines={1} style={styles.audioTitle}>
-            audio file name
+            {context.currentAudio.filename}
           </Text>
           <Slider
             style={{ width: constStyles.width, height: 40 }}
+            value={calculateSearchBar()}
             minimumValue={0}
             maximumValue={1}
             minimumTrackTintColor={colors.FONT_MEDIUM}
@@ -35,7 +47,7 @@ const Player = () => {
             <PlayerButton
               onPress={() => console.log("play")}
               style={{ marginHorizontal: 25 }}
-              iconType="PLAY"
+              iconType={context.isPlaying ? "PLAY" : "PAUSE"}
             />
             <PlayerButton iconType="NEXT" />
           </View>
@@ -56,7 +68,7 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   audioCount: {
-    textAlign: "right",
+    textAlign: "center",
     pading: 15,
     color: colors.FONT_LIGHT,
     fontSize: 14,
