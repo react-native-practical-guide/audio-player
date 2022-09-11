@@ -2,7 +2,7 @@ import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
-import { Screen } from "../components";
+import { PlayerButton, Screen } from "../components";
 import { colors } from "../misc";
 import Slider from "@react-native-community/slider";
 import { constStyles } from "../styles";
@@ -30,6 +30,15 @@ const Player = () => {
             minimumTrackTintColor={colors.FONT_MEDIUM}
             maximumTrackTintColor={colors.ACTIVE_BG}
           />
+          <View style={styles.audioControllers}>
+            <PlayerButton iconType="PREV" />
+            <PlayerButton
+              onPress={() => console.log("play")}
+              style={{ marginHorizontal: 25 }}
+              iconType="PLAY"
+            />
+            <PlayerButton iconType="NEXT" />
+          </View>
         </View>
       </View>
     </Screen>
@@ -39,6 +48,13 @@ const Player = () => {
 export default Player;
 
 const styles = StyleSheet.create({
+  audioControllers: {
+    width: constStyles.width,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingBottom: 20,
+  },
   audioCount: {
     textAlign: "right",
     pading: 15,
