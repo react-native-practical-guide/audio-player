@@ -42,11 +42,38 @@ class AudioList extends Component {
     }
   );
 
-  onPlaybackStatusUpdate = (playbackStatus) => {
+  onPlaybackStatusUpdate = async (playbackStatus) => {
     if (playbackStatus.isLoaded && playbackStatus.isPlaying) {
       this.context.updateState(this.context, {
         playbackPosition: playbackStatus.positionMillis,
         playbackDuration: playbackStatus.durationMillis,
+      });
+    }
+
+    /* If there is no next audio */
+    if (playbackStatus.didJustFinish) {
+      const nextAudioIndex = this.context.currentAudioIndex + 1;
+      if (nextAudioIndex >= this.context.totalAudioCount) {
+        this.context.playBackObj.unloadAsync();
+        return this.context.updateState(this.context, {
+          soundObj: null,
+          currentAudio: this.context.audioFiles[0],
+          isPlaying: false,
+          currentAudioIndex: 0,
+          playbackPosition: null,
+          playbackDuration: null,
+        });
+      }
+
+      /* Else select next audio */
+      const audio = this.context.audioFiles[nextAudioIndex];
+      const status = await playnext(this.context.playBackObj, audio.uri);
+
+      return this.context.updateState(this.context, {
+        soundObj: status,
+        currentAudio: audio,
+        isPlaying: true,
+        currentAudioIndex: nextAudioIndex,
       });
     }
   };
