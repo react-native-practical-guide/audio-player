@@ -33,6 +33,9 @@ const Player = () => {
       context.playbackObj.setOnPlaybackStatusUpdate(
         context.onPlaybackStatusUpdate
       );
+      context.playbackObj.setOnPlaybackStatusUpdate(
+        context.onPlaybackStatusUpdate
+      );
       return context.updateState(context, {
         soundObj: status,
         currentAudio: audio,
@@ -40,7 +43,7 @@ const Player = () => {
         currentAudioIndex: context.currentAudioIndex,
       });
     }
-    console.log(context.soundObj.isLoaded, context.soundObj.isPlaying);
+
     // pause
     if (context.soundObj && context.soundObj.isPlaying) {
       const status = await pause(context.playbackObj);
