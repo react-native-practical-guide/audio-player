@@ -14,6 +14,8 @@ import { constStyles, default_styles } from "../styles";
 import { AudioListItem, Screen, OptionModal } from "../components";
 import { Audio } from "expo-av";
 import { play, pause, resume, playnext } from "../misc/audioController";
+import { storeAudioForNextOpening } from "../misc/helper";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 class AudioList extends Component {
   static contextType = AudioContext;
 
@@ -24,6 +26,10 @@ class AudioList extends Component {
     };
 
     this.currentItem = {};
+  }
+
+  componentDidMount() {
+    this.context.loadPreviousAudio();
   }
 
   layoutProvider = new LayoutProvider(
@@ -55,7 +61,7 @@ class AudioList extends Component {
       const nextAudioIndex = this.context.currentAudioIndex + 1;
       if (nextAudioIndex >= this.context.totalAudioCount) {
         this.context.playBackObj.unloadAsync();
-        return this.context.updateState(this.context, {
+        this.context.updateState(this.context, {
           soundObj: null,
           currentAudio: this.context.audioFiles[0],
           isPlaying: false,
@@ -63,18 +69,21 @@ class AudioList extends Component {
           playbackPosition: null,
           playbackDuration: null,
         });
+        return await storeAudioForNextOpening(this.context.audioFiles[0], 0);
       }
 
       /* Else select next audio */
       const audio = this.context.audioFiles[nextAudioIndex];
       const status = await playnext(this.context.playBackObj, audio.uri);
 
-      return this.context.updateState(this.context, {
+      this.context.updateState(this.context, {
         soundObj: status,
         currentAudio: audio,
         isPlaying: true,
         currentAudioIndex: nextAudioIndex,
       });
+
+      await storeAudioForNextOpening(audio, nextAudioIndex);
     }
   };
 
@@ -95,7 +104,8 @@ class AudioList extends Component {
         isPlaying: true,
         currentAudioIndex: index,
       });
-      return playBackObj.setOnPlaybackStatusUpdate(this.onPlaybackStatusUpdate);
+      playBackObj.setOnPlaybackStatusUpdate(this.onPlaybackStatusUpdate);
+      return await storeAudioForNextOpening(audio, index);
     }
 
     // pause audio
@@ -123,13 +133,14 @@ class AudioList extends Component {
       console.log("play next");
       const status = await playnext(playBackObj, audio.uri);
       const index = audioFiles.indexOf(audio);
-      return updateState(this.context, {
+      updateState(this.context, {
         currentAudio: audio,
         playBackObj,
         soundObj: status,
         isPlaying: true,
         currentAudioIndex: index,
       });
+      return await storeAudioForNextOpening(audio, index);
     }
   };
 
@@ -153,6 +164,8 @@ class AudioList extends Component {
     return (
       <AudioContext.Consumer>
         {({ dataProvider, isPlaying }) => {
+          if (!dataProvider._data.length) return null;
+
           return (
             <Screen>
               <RecyclerListView
