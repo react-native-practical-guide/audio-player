@@ -1,39 +1,39 @@
 // play audio
-const play = async (playBackObj, uri) => {
+const play = async (playbackObj, uri) => {
   try {
-    return await playBackObj.loadAsync({ uri }, { shouldPlay: true });
+    return await playbackObj.loadAsync({ uri }, { shouldPlay: true });
   } catch (error) {
     console.log("Error in play func", error.message);
   }
 };
 
 // pause audio
-const pause = async (playBackObj) => {
+const pause = async (playbackObj) => {
   try {
-    return await playBackObj.setStatusAsync({ shouldPlay: false });
+    return await playbackObj.setStatusAsync({ shouldPlay: false });
   } catch (error) {
     console.log("Error in pause func", error.message);
   }
 };
 
 // resume audio
-const resume = async (playBackObj) => {
+const resume = async (playbackObj) => {
   try {
-    return await playBackObj.playAsync();
+    return await playbackObj.playAsync();
   } catch (error) {
     console.log("Error in resume func", error.message);
   }
 };
 
 // select another audio
-const playnext = async (playBackObj, uri) => {
+const playNext = async (playbackObj, uri) => {
   try {
-    await playBackObj.stopAsync();
-    await playBackObj.unloadAsync();
-    return await play(playBackObj, uri);
+    await playbackObj.stopAsync();
+    await playbackObj.unloadAsync();
+    return await play(playbackObj, uri);
   } catch (error) {
-    console.log("Error in playnext func", error.message);
+    console.log("Error in playNext func", error.message);
   }
 };
 
-export { play, pause, resume, playnext };
+export { play, pause, resume, playNext };

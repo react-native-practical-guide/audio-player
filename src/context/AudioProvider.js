@@ -14,7 +14,7 @@ export default class AudioProvider extends Component {
       audioFiles: [],
       dataProvider: new DataProvider((r1, r2) => r1 !== r2),
       permissionError: false,
-      playBackObj: null,
+      playbackObj: null,
       soundObj: null,
       currentAudio: {},
       isPlaying: false,
@@ -103,8 +103,8 @@ export default class AudioProvider extends Component {
 
   componentDidMount() {
     this.getPermission();
-    if (!this.state.playBackObj)
-      this.setState({ ...this.state, playBackObj: new Audio.Sound() });
+    if (!this.state.playbackObj)
+      this.setState({ ...this.state, playbackObj: new Audio.Sound() });
   }
 
   updateState = (prevState, newState = {}) => {
@@ -116,7 +116,7 @@ export default class AudioProvider extends Component {
       audioFiles,
       dataProvider,
       permissionError,
-      playBackObj,
+      playbackObj,
       soundObj,
       currentAudio,
       isPlaying,
@@ -144,7 +144,7 @@ export default class AudioProvider extends Component {
         value={{
           audioFiles,
           dataProvider,
-          playBackObj,
+          playbackObj,
           soundObj,
           currentAudio,
           updateState: this.updateState,
