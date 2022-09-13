@@ -22,6 +22,8 @@ export default class AudioProvider extends Component {
       soundObj: null,
       currentAudio: {},
       isPlaying: false,
+      isPlayListRunning: false,
+      activePlayList: [],
       currentAudioIndex: null,
       playbackPosition: null,
       playbackDuration: null,
@@ -105,7 +107,7 @@ export default class AudioProvider extends Component {
     }
   };
 
-  // Check L15 10:00 about setOnPlaybackStatusUpdate (and L20)
+  // Check L15 10:00 about setOnPlaybackStatusUpdate (and L20, L29)
   onPlaybackStatusUpdate = async (playbackStatus) => {
     if (playbackStatus.isLoaded && playbackStatus.isPlaying) {
       this.updateState(this, {
@@ -114,9 +116,40 @@ export default class AudioProvider extends Component {
       });
     }
 
-    /* If there is no next audio */
+    if (playbackStatus.isLoaded && !playbackStatus.isPlaying) {
+      storeAudioForNextOpening(
+        this.state.currentAudio,
+        this.state.currentAudioIndex,
+        playbackStatus.positionMillis
+      );
+    }
+
     if (playbackStatus.didJustFinish) {
+      if (this.state.isPlayListRunning) {
+        let audio;
+        const indexOnPlayList = this.state.activePlayList.audios.findIndex(
+          ({ id }) => id === this.state.currentAudio.id
+        );
+        const nextIndex = indexOnPlayList + 1;
+        audio = this.state.activePlayList.audios[nextIndex];
+
+        if (!audio) audio = this.state.activePlayList.audios[0];
+
+        const indexOnAllList = this.state.audioFiles.findIndex(
+          ({ id }) => id === audio.id
+        );
+
+        const status = await playNext(this.state.playbackObj, audio.uri);
+        return this.updateState(this, {
+          soundObj: status,
+          isPlaying: true,
+          currentAudio: audio,
+          currentAudioIndex: indexOnAllList,
+        });
+      }
+
       const nextAudioIndex = this.state.currentAudioIndex + 1;
+      // there is no next audio to play or the current audio is the last
       if (nextAudioIndex >= this.totalAudioCount) {
         this.state.playbackObj.unloadAsync();
         this.updateState(this, {
@@ -129,18 +162,15 @@ export default class AudioProvider extends Component {
         });
         return await storeAudioForNextOpening(this.state.audioFiles[0], 0);
       }
-
-      /* Else select next audio */
+      // otherwise we want to select the next audio
       const audio = this.state.audioFiles[nextAudioIndex];
       const status = await playNext(this.state.playbackObj, audio.uri);
-
       this.updateState(this, {
         soundObj: status,
         currentAudio: audio,
         isPlaying: true,
         currentAudioIndex: nextAudioIndex,
       });
-
       await storeAudioForNextOpening(audio, nextAudioIndex);
     }
   };
@@ -169,6 +199,8 @@ export default class AudioProvider extends Component {
       playbackDuration,
       playList,
       addToPlayList,
+      isPlayListRunning,
+      activePlayList,
     } = this.state;
 
     if (permissionError)
@@ -203,6 +235,8 @@ export default class AudioProvider extends Component {
           onPlaybackStatusUpdate: this.onPlaybackStatusUpdate,
           playList,
           addToPlayList,
+          isPlayListRunning,
+          activePlayList,
         }}>
         {this.props.children}
       </AudioContext.Provider>
