@@ -1,33 +1,12 @@
 import React from "react";
 import { StyleSheet, Text, View, TouchableWithoutFeedback } from "react-native";
 import { Entypo } from "@expo/vector-icons";
+
 import { colors } from "../misc";
 import { constStyles } from "../styles";
+import { convertTime } from "../misc/helper";
 
 const getThumbnailText = (filename) => filename[0];
-
-const convertTime = (minutes) => {
-  if (minutes) {
-    const hrs = minutes / 60;
-    const minute = hrs.toString().split(".")[0];
-    const percent = parseInt(hrs.toString().split(".")[1].slice(0, 2));
-    const sec = Math.ceil((60 * percent) / 100);
-
-    if (parseInt(minute) < 10 && sec < 10) {
-      return `0${minute}:0${sec}`;
-    }
-
-    if (parseInt(minute) < 10) {
-      return `0${minute}:${sec}`;
-    }
-
-    if (sec < 10) {
-      return `${minute}:0${sec}`;
-    }
-
-    return `${minute}:${sec}`;
-  }
-};
 
 const renderPlayPauseIcon = (isPlaying) => {
   if (!isPlaying)

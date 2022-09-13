@@ -1,11 +1,12 @@
-import React, { useContext, useEffect } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import Slider from "@react-native-community/slider";
+import { Audio } from "expo-av";
 
 import { AudioContext } from "../context/AudioProvider";
 import { PlayerButton, Screen } from "../components";
 import { colors } from "../misc";
-import Slider from "@react-native-community/slider";
 import { constStyles } from "../styles";
 import {
   pause,
@@ -14,12 +15,12 @@ import {
   selectAudio,
   changeAudio,
 } from "../misc/audioController";
-import { Audio } from "expo-av";
-import { storeAudioForNextOpening } from "../misc/helper";
+import { storeAudioForNextOpening, convertTime } from "../misc/helper";
 
 const Player = () => {
   const context = useContext(AudioContext);
   const { playbackPosition, playbackDuration } = context;
+  const [currentPosition, setCurrentPosition] = useState(0);
 
   const calculateSearchBar = () => {
     if (playbackPosition !== null && playbackDuration !== null)
@@ -37,6 +38,13 @@ const Player = () => {
 
   const handlePrevious = async () => {
     await changeAudio(context, "previous");
+  };
+
+  const renderCurrentTime = () => {
+    if (!context.soundObj && context.currentAudio.lastPosition) {
+      return convertTime(context.currentAudio.lastPosition / 1000);
+    }
+    return convertTime(context.playbackPosition / 1000);
   };
 
   if (!context.currentAudio) return null;
@@ -57,6 +65,12 @@ const Player = () => {
           <Text numberOfLines={1} style={styles.audioTitle}>
             {context.currentAudio.filename}
           </Text>
+          <View style={styles.timeStampContainer}>
+            <Text>
+              {currentPosition ? currentPosition : renderCurrentTime()}
+            </Text>
+            <Text>{convertTime(context.currentAudio.duration)}</Text>
+          </View>
           <Slider
             style={{ width: constStyles.width, height: 40 }}
             value={calculateSearchBar()}
@@ -64,6 +78,11 @@ const Player = () => {
             maximumValue={1}
             minimumTrackTintColor={colors.FONT_MEDIUM}
             maximumTrackTintColor={colors.ACTIVE_BG}
+            onValueChange={(value) => {
+              setCurrentPosition(
+                convertTime(value * context.currentAudio.duration)
+              );
+            }}
           />
           <View style={styles.audioControllers}>
             <PlayerButton onPress={handlePrevious} iconType="PREV" />
@@ -110,5 +129,10 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+  },
+  timeStampContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingHorizontal: 15,
   },
 });
