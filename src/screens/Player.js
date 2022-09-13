@@ -14,6 +14,7 @@ import {
   playNext,
   selectAudio,
   changeAudio,
+  moveAudio,
 } from "../misc/audioController";
 import { storeAudioForNextOpening, convertTime } from "../misc/helper";
 
@@ -82,6 +83,19 @@ const Player = () => {
               setCurrentPosition(
                 convertTime(value * context.currentAudio.duration)
               );
+            }}
+            onSlidingStart={async () => {
+              if (!context.isPlaying) return;
+
+              try {
+                await pause(context.playbackObj);
+              } catch (error) {
+                console.log("error inside onSlidingStart callback", error);
+              }
+            }}
+            onSlidingComplete={async (value) => {
+              await moveAudio(context, value);
+              setCurrentPosition(0);
             }}
           />
           <View style={styles.audioControllers}>
