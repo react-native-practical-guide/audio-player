@@ -14,6 +14,8 @@ export default class AudioProvider extends Component {
     super(props);
     this.state = {
       audioFiles: [],
+      playList: [],
+      addToPlayList: null,
       dataProvider: new DataProvider((r1, r2) => r1 !== r2),
       permissionError: false,
       playbackObj: null,
@@ -165,6 +167,8 @@ export default class AudioProvider extends Component {
       currentAudioIndex,
       playbackPosition,
       playbackDuration,
+      playList,
+      addToPlayList,
     } = this.state;
 
     if (permissionError)
@@ -197,6 +201,8 @@ export default class AudioProvider extends Component {
           playbackDuration,
           loadPreviousAudio: this.loadPreviousAudio,
           onPlaybackStatusUpdate: this.onPlaybackStatusUpdate,
+          playList,
+          addToPlayList,
         }}>
         {this.props.children}
       </AudioContext.Provider>
