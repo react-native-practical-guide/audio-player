@@ -1,23 +1,34 @@
 import { storeAudioForNextOpening } from "./helper";
 
 // play audio
-export const play = async (playbackObj, uri) => {
+export const play = async (playbackObj, uri, lastPosition) => {
   try {
-    return await playbackObj.loadAsync(
+    if (!lastPosition)
+      return await playbackObj.loadAsync(
+        { uri },
+        { shouldPlay: true, progressUpdateIntervalMillis: 1000 }
+      );
+
+    // but if there is lastPosition then we will play audio from the lastPosition
+    await playbackObj.loadAsync(
       { uri },
-      { shouldPlay: true, progressUpdateIntervalMillis: 1000 }
+      { progressUpdateIntervalMillis: 1000 }
     );
+
+    return await playbackObj.playFromPositionAsync(lastPosition);
   } catch (error) {
-    console.log("Error in play func", error.message);
+    console.log("error inside play helper method", error.message);
   }
 };
 
 // pause audio
-const pause = async (playbackObj) => {
+export const pause = async (playbackObj) => {
   try {
-    return await playbackObj.setStatusAsync({ shouldPlay: false });
+    return await playbackObj.setStatusAsync({
+      shouldPlay: false,
+    });
   } catch (error) {
-    console.log("Error in pause func", error.message);
+    console.log("error inside pause helper method", error.message);
   }
 };
 
@@ -26,7 +37,7 @@ export const resume = async (playbackObj) => {
   try {
     return await playbackObj.playAsync();
   } catch (error) {
-    console.log("Error in resume func", error.message);
+    console.log("error inside resume helper method", error.message);
   }
 };
 
@@ -37,7 +48,7 @@ export const playNext = async (playbackObj, uri) => {
     await playbackObj.unloadAsync();
     return await play(playbackObj, uri);
   } catch (error) {
-    console.log("Error in playNext func", error.message);
+    console.log("error inside playNext helper method", error.message);
   }
 };
 
@@ -110,6 +121,41 @@ export const selectAudio = async (audio, context, playListInfo = {}) => {
   } catch (error) {
     console.log("error inside select audio method.", error.message);
   }
+};
+
+const selectAudioFromPlayList = async (context, select) => {
+  const { activePlayList, currentAudio, audioFiles, playbackObj, updateState } =
+    context;
+  let audio;
+  let defaultIndex;
+  let nextIndex;
+
+  const indexOnPlayList = activePlayList.audios.findIndex(
+    ({ id }) => id === currentAudio.id
+  );
+
+  if (select === "next") {
+    nextIndex = indexOnPlayList + 1;
+    defaultIndex = 0;
+  }
+
+  if (select === "previous") {
+    nextIndex = indexOnPlayList - 1;
+    defaultIndex = activePlayList.audios.length - 1;
+  }
+  audio = activePlayList.audios[nextIndex];
+
+  if (!audio) audio = activePlayList.audios[defaultIndex];
+
+  const indexOnAllList = audioFiles.findIndex(({ id }) => id === audio.id);
+
+  const status = await playNext(playbackObj, audio.uri);
+  return updateState(context, {
+    soundObj: status,
+    isPlaying: true,
+    currentAudio: audio,
+    currentAudioIndex: indexOnAllList,
+  });
 };
 
 export const changeAudio = async (context, select) => {
@@ -192,7 +238,7 @@ export const changeAudio = async (context, select) => {
     });
     storeAudioForNextOpening(audio, index);
   } catch (error) {
-    console.log("error inside change audio method.", error.message);
+    console.log("error inside cahnge audio method.", error.message);
   }
 };
 

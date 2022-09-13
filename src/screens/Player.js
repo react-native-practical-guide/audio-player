@@ -23,15 +23,13 @@ const Player = () => {
   const { playbackPosition, playbackDuration } = context;
   const [currentPosition, setCurrentPosition] = useState(0);
 
-  const calculateSearchBar = () => {
-    if (playbackPosition !== null && playbackDuration !== null)
-      return playbackPosition / playbackDuration;
-    else return 0;
-  };
-
   useEffect(() => {
     context.loadPreviousAudio();
   }, []);
+
+  const handlePlayPause = async () => {
+    await selectAudio(context.currentAudio, context);
+  };
 
   const handleNext = async () => {
     await changeAudio(context, "next");
@@ -46,6 +44,21 @@ const Player = () => {
       return convertTime(context.currentAudio.lastPosition / 1000);
     }
     return convertTime(context.playbackPosition / 1000);
+  };
+
+  const calculateSlider = () => {
+    if (playbackPosition !== null && playbackDuration !== null) {
+      return playbackPosition / playbackDuration;
+    }
+
+    if (context.currentAudio.lastPosition) {
+      return (
+        context.currentAudio.lastPosition /
+        (context.currentAudio.duration * 1000)
+      );
+    }
+
+    return 0;
   };
 
   if (!context.currentAudio) return null;
@@ -68,7 +81,7 @@ const Player = () => {
         <View style={styles.midBannerContainer}>
           <MaterialCommunityIcons
             name="music-circle"
-            size={200}
+            size={300}
             color={context.isPlaying ? colors.ACTIVE_BG : colors.FONT_MEDIUM}
           />
         </View>
@@ -76,7 +89,12 @@ const Player = () => {
           <Text numberOfLines={1} style={styles.audioTitle}>
             {context.currentAudio.filename}
           </Text>
-          <View style={styles.timeStampContainer}>
+          <View
+            style={{
+              flexDirection: "row",
+              justifyContent: "space-between",
+              paddingHorizontal: 15,
+            }}>
             <Text>
               {currentPosition ? currentPosition : renderCurrentTime()}
             </Text>
@@ -84,9 +102,9 @@ const Player = () => {
           </View>
           <Slider
             style={{ width: constStyles.width, height: 40 }}
-            value={calculateSearchBar()}
             minimumValue={0}
             maximumValue={1}
+            value={calculateSlider()}
             minimumTrackTintColor={colors.FONT_MEDIUM}
             maximumTrackTintColor={colors.ACTIVE_BG}
             onValueChange={(value) => {
@@ -109,15 +127,13 @@ const Player = () => {
             }}
           />
           <View style={styles.audioControllers}>
-            <PlayerButton onPress={handlePrevious} iconType="PREV" />
+            <PlayerButton iconType="PREV" onPress={handlePrevious} />
             <PlayerButton
-              onPress={async () => {
-                await selectAudio(context.currentAudio, context);
-              }}
+              onPress={handlePlayPause}
               style={{ marginHorizontal: 25 }}
               iconType={context.isPlaying ? "PLAY" : "PAUSE"}
             />
-            <PlayerButton onPress={handleNext} iconType="NEXT" />
+            <PlayerButton iconType="NEXT" onPress={handleNext} />
           </View>
         </View>
       </View>
