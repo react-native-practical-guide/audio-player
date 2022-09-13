@@ -13,7 +13,13 @@ import { AudioContext } from "../context/AudioProvider";
 import { constStyles, default_styles } from "../styles";
 import { AudioListItem, Screen, OptionModal } from "../components";
 import { Audio } from "expo-av";
-import { play, pause, resume, playNext } from "../misc/audioController";
+import {
+  play,
+  pause,
+  resume,
+  playNext,
+  selectAudio,
+} from "../misc/audioController";
 import { storeAudioForNextOpening } from "../misc/helper";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 class AudioList extends Component {
@@ -48,63 +54,6 @@ class AudioList extends Component {
     }
   );
 
-  handleAudioPress = async (audio) => {
-    const { soundObj, playbackObj, currentAudio, updateState, audioFiles } =
-      this.context;
-    // playing audio for first time
-    if (!soundObj) {
-      const playbackObj = new Audio.Sound();
-      const status = await play(playbackObj, audio.uri);
-      const index = audioFiles.indexOf(audio);
-      updateState(this.context, {
-        currentAudio: audio,
-        playbackObj,
-        soundObj: status,
-        isPlaying: true,
-        currentAudioIndex: index,
-      });
-      playbackObj.setOnPlaybackStatusUpdate(
-        this.context.onPlaybackStatusUpdate
-      );
-      return await storeAudioForNextOpening(audio, index);
-    }
-
-    // pause audio
-    if (
-      soundObj.isLoaded &&
-      soundObj.isPlaying &&
-      currentAudio.id === audio.id
-    ) {
-      const status = await pause(playbackObj);
-      return updateState(this.state, { soundObj: status, isPlaying: false });
-    }
-
-    // resume audio
-    if (
-      soundObj.isLoaded &&
-      !soundObj.isPlaying &&
-      currentAudio.id === audio.id
-    ) {
-      const status = await resume(playbackObj);
-      return updateState(this.state, { soundObj: status, isPlaying: true });
-    }
-
-    // select another audio
-    if (soundObj.isLoaded && currentAudio.id != audio.id) {
-      console.log("play next");
-      const status = await playNext(playbackObj, audio.uri);
-      const index = audioFiles.indexOf(audio);
-      updateState(this.context, {
-        currentAudio: audio,
-        playbackObj,
-        soundObj: status,
-        isPlaying: true,
-        currentAudioIndex: index,
-      });
-      return await storeAudioForNextOpening(audio, index);
-    }
-  };
-
   rowRenderer = (type, item, index, extendedState) => {
     return (
       <AudioListItem
@@ -116,7 +65,9 @@ class AudioList extends Component {
           this.currentItem = item;
           this.setState({ ...this.state, optionModalVisible: true });
         }}
-        onAudioPress={() => this.handleAudioPress(item)}
+        onAudioPress={async () => {
+          await selectAudio(item, this.context);
+        }}
       />
     );
   };
